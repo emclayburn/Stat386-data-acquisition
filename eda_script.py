@@ -3,12 +3,6 @@ import pandas as pd
 file_path = 'nba_team_standings_historical.csv'
 df = pd.read_csv(file_path)
 
-# --- 1. Define Your Motivating Question ---
-# Example Question: "Is offensive efficiency (PointsPG) a better predictor of success (WinPCT) in the modern NBA than defensive efficiency?"
-
-# --- 2. Select Your 5+ Core Features for Analysis ---
-# Based on the column list you provided, these are great candidates for EDA:
-
 CORE_FEATURES = [
     'SEASON_YEAR_FULL',
     'TeamName',        
@@ -25,9 +19,14 @@ df_filtered = df[CORE_FEATURES].copy()
 
 df_filtered['WinPCT'] = pd.to_numeric(df_filtered['WinPCT'], errors='coerce')
 
-print("--- Filtered Data Head ---")
-print(df_filtered.head())
-print(f"\nTotal rows for analysis: {len(df_filtered)}")
-print(f"Columns for analysis: {df_filtered.columns.tolist()}")
+home_split = df_filtered['HOME'].str.split('-', expand=True)
+df_filtered['Home_Wins'] = pd.to_numeric(home_split[0], errors='coerce')
+df_filtered['Home_Losses'] = pd.to_numeric(home_split[1], errors='coerce')
+
+road_split = df_filtered['ROAD'].str.split('-', expand=True)
+df_filtered['Road_Wins'] = pd.to_numeric(road_split[0], errors='coerce')
+df_filtered['Road_Losses'] = pd.to_numeric(road_split[1], errors='coerce')
+
+df_filtered = df_filtered.drop(columns=['HOME', 'ROAD'])
 
 df_filtered.to_csv('nba_clean_for_eda.csv', index=False)
