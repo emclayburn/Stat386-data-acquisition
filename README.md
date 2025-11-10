@@ -1,1 +1,1 @@
-# Stat386-data-acquisition
+The purpose of the repo is to gather data on the NBA from 2011 through the end of last season. There is a file dedicated to the acquisition of said data, and another file to do the exploratory data analysis.

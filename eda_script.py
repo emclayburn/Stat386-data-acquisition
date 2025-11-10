@@ -5,12 +5,12 @@ df = pd.read_csv(file_path)
 
 CORE_FEATURES = [
     'SEASON_YEAR_FULL',
-    'TeamName',        
-    'WINS',          
-    'WinPCT',          
-    'PointsPG',     
-    'DiffPointsPG',    
-    'AheadAtHalf',     
+    'TeamName',
+    'WINS', 
+    'WinPCT',
+    'PointsPG',
+    'DiffPointsPG',
+    'AheadAtHalf',
     'HOME',
     'ROAD'
 ]
