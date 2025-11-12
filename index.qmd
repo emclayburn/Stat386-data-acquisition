@@ -7,10 +7,11 @@ execute:
   warning: false
   message: false
 ---
-Writing
 
-import eda
+```{python}
+import eda_script
 df = eda.load_clean_data()
+```
 
 <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 What does NBA data really tell us?
@@ -29,9 +30,10 @@ Copy code
 pip install nba_api
 I imported the endpoint LeagueStandings to pull team statistics from each regular season between 2010 and 2025. To respect API rate limits, I included a one second pause (time.sleep(1)) between requests.
 
-python
+```{python}
 Copy code
 from nba_api.stats.endpoints import LeagueStandings
+```
 The code stores each season's standings in a list and combines them into a single dataframe with over 4,000 rows and 10+ variables, then exports it to a CSV file (nba_team_standings_historical.csv).
 
 After downloading, I merged this data with a second file of 3-point attempt totals to add shooting information, calculated per-game stats, and cleaned up home/road win columns. The final dataset, nba_clean_for_eda.csv, is ready for exploratory analysis.
@@ -41,15 +43,16 @@ My first question was whether a team's offensive output—specifically points pe
 
 Using my cleaned dataset, I calculated the correlation between PointsPG and WinPCT and created a scatterplot with a regression line:
 
-Writing
-
+```{python}
 eda.plot_points_vs_winpct(df)
+```
 
 To dig deeper, I replaced raw points with point differential per game (average points minus points allowed). This time, the correlation jumped to an almost perfect linear relationship.
 
-Writing
 
+```{python}
 eda.plot_diff_vs_winpct(df)
+```
 
 In other words, it's not just about scoring a lot—the key is consistently outscoring your opponents. Teams that win big tend to defend well, not just score more.
 
@@ -58,17 +61,17 @@ Next, I wanted to see how the NBA's style of play has changed over the last 15 s
 
 To explore this, I grouped the data by season and calculated the league averages for both stats:
 
-python
-Copy code
+```{python}
 df.groupby('SEASON_YEAR_FULL').agg(
   Avg_PointsPG=('PointsPG', 'mean'),
   Avg_FG3A_PG=('FG3A_PG', 'mean')
 )
+```
 Then, I plotted both metrics on the same chart — points per game in blue and 3-point attempts per game in red:
 
-Writing
-
+```{python}
 eda.plot_points_and_3pa_over_time()
+```
 
 The results are striking: since the 2010–11 season, the average team has increased its scoring by nearly 15 points per game, and the number of 3-pointers attempted has more than doubled.
 
@@ -79,15 +82,16 @@ Finally, I wanted to test whether the long-held belief in home-court advantage s
 
 Using the cleaned dataset, I separated each team's home and road records to compare league-wide averages:
 
-python
-Copy code
+```{python}
 avg_home_wins = df['Home_Wins'].mean()
 avg_road_wins = df['Road_Wins'].mean()
+```
+
 Then I created a simple bar comparison:
 
-Writing
-
+```{python}
 eda.plot_home_vs_road(df)
+```
 
 Across all seasons from 2010 to 2025, teams win about six more games per year at home than on the road. Even in an era of private jets, advanced analytics, and neutralized travel schedules, the home crowd and familiarity still provide a measurable edge.
 

@@ -1,1 +1,1 @@
-The purpose of the repo is to gather data on the NBA from 2011 through the end of last season. There is a file dedicated to the acquisition of said data, and the exploratory data analysis. There is a different reposity that contains the actual blog which discusses the EDA more in depth.
+The purpose of the repo is to gather data on the NBA from 2011 through the end of last season. There is a file dedicated to the acquisition of said data, and the exploratory data analysis. There is also a file dedicated to the actual blog.
