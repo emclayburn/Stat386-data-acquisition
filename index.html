@@ -23,7 +23,7 @@ ul.task-list li input[type="checkbox"] {
 </style>
 
 
-<script src="index_files/libs/clipboard/clipboard.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="index_files/libs/clipboard/clipboard.min.js"></script>
 <script src="index_files/libs/quarto-html/quarto.js" type="module"></script>
 <script src="index_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="index_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
@@ -35,6 +35,9 @@ ul.task-list li input[type="checkbox"] {
 <script src="index_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="index_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="index_files/libs/bootstrap/bootstrap-d6a003b94517c951b2d65075d42fb01b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
 
 
 </head>
@@ -64,44 +67,192 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>Writing</p>
-<p>import eda_script df = eda.load_clean_data()</p>
 <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
 <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <p>What does NBA data really tell us? The game of basketball has changed in many ways throughout the years. From the style of play to the athletes themselves, the NBA has evolved into a fast-paced, high-scoring league that emphasizes athleticism and skill. But what does the data tell us about these changes? Is it effective to rely purely on scoring, or does defense really win championships? How has the trend of shooting three pointers changed? Has Stephen Curry really ruined basketball? In this blog post, we will explore some key statistics and trends in the NBA to uncover what the data really tells us about the game.</p>
-<p>Motivating Question What do we want to learn from this data? From this analysis, I am looking to answer three main questions, how does points per game impact your winning percentage, how has the points and 3’s attempted a game changed, and if you are leading at the half does that mean you are winning the games. This will break my blog into a few different sections, one for collection of the data and one for each question.</p>
-<p>Data Collection To gather my dataset, I used the official NBA Stats API, which provides public access to stats.nba.com. This approach is both ethical and efficient compared to scraping raw web pages.</p>
+<section id="motivating-question" class="level2">
+<h2 class="anchored" data-anchor-id="motivating-question">Motivating Question</h2>
+<p>What do we want to learn from this data? From this analysis, I am looking to answer three main questions, how does points per game impact your winning percentage, how has the points and 3’s attempted a game changed, and if you are leading at the half does that mean you are winning the games. This will break my blog into a few different sections, one for collection of the data and one for each question.</p>
+</section>
+<section id="data-collection" class="level2">
+<h2 class="anchored" data-anchor-id="data-collection">Data Collection</h2>
+<p>To gather my dataset, I used the official NBA Stats API, which provides public access to stats.nba.com. This approach is both ethical and efficient compared to scraping raw web pages.</p>
 <p>The Python package nba_api makes this easy to use. After installing it with:</p>
-<p>nginx Copy code pip install nba_api I imported the endpoint LeagueStandings to pull team statistics from each regular season between 2010 and 2025. To respect API rate limits, I included a one second pause (time.sleep(1)) between requests.</p>
-<p>python Copy code from nba_api.stats.endpoints import LeagueStandings The code stores each season’s standings in a list and combines them into a single dataframe with over 4,000 rows and 10+ variables, then exports it to a CSV file (nba_team_standings_historical.csv).</p>
+<pre><code>pip install nba_api</code></pre>
+<p>I imported the endpoint LeagueStandings to pull team statistics from each regular season between 2010 and 2025. To respect API rate limits, I included a one second pause (time.sleep(1)) between requests.</p>
+<p>The code stores each season’s standings in a list and combines them into a single dataframe with over 4,000 rows and 10+ variables, then exports it to a CSV file (nba_team_standings_historical.csv).</p>
 <p>After downloading, I merged this data with a second file of 3-point attempt totals to add shooting information, calculated per-game stats, and cleaned up home/road win columns. The final dataset, nba_clean_for_eda.csv, is ready for exploratory analysis.</p>
-<p>Finding 1 — Does Scoring More Really Lead to Winning More? My first question was whether a team’s offensive output—specifically points per game—predicts its winning percentage.</p>
+</section>
+<section id="finding-1-does-scoring-more-really-lead-to-winning-more" class="level2">
+<h2 class="anchored" data-anchor-id="finding-1-does-scoring-more-really-lead-to-winning-more">Finding 1 — Does Scoring More Really Lead to Winning More?</h2>
+<p>My first question was whether a team’s offensive output—specifically points per game—predicts its winning percentage.</p>
 <p>Using my cleaned dataset, I calculated the correlation between PointsPG and WinPCT and created a scatterplot with a regression line:</p>
-<p>Writing</p>
-<p>eda.plot_points_vs_winpct(df)</p>
+<div id="aa213c53" class="cell" data-execution_count="3">
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/cell-4-output-1.png" width="812" height="523" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
 <p>To dig deeper, I replaced raw points with point differential per game (average points minus points allowed). This time, the correlation jumped to an almost perfect linear relationship.</p>
-<p>Writing</p>
-<p>eda.plot_diff_vs_winpct(df)</p>
+<div id="9b7b18d5" class="cell" data-execution_count="4">
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/cell-5-output-1.png" width="812" height="523" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
 <p>In other words, it’s not just about scoring a lot—the key is consistently outscoring your opponents. Teams that win big tend to defend well, not just score more.</p>
-<p>Finding 2 — How Have Scoring and 3-Point Attempts Changed Over Time? Next, I wanted to see how the NBA’s style of play has changed over the last 15 seasons. Specifically, how average points per game and 3-point attempts per game have evolved.</p>
+</section>
+<section id="finding-2-how-have-scoring-and-3-point-attempts-changed-over-time" class="level2">
+<h2 class="anchored" data-anchor-id="finding-2-how-have-scoring-and-3-point-attempts-changed-over-time">Finding 2 — How Have Scoring and 3-Point Attempts Changed Over Time?</h2>
+<p>Next, I wanted to see how the NBA’s style of play has changed over the last 15 seasons. Specifically, how average points per game and 3-point attempts per game have evolved.</p>
 <p>To explore this, I grouped the data by season and calculated the league averages for both stats:</p>
-<p>python Copy code df.groupby(‘SEASON_YEAR_FULL’).agg( Avg_PointsPG=(‘PointsPG’, ‘mean’), Avg_FG3A_PG=(‘FG3A_PG’, ‘mean’) ) Then, I plotted both metrics on the same chart — points per game in blue and 3-point attempts per game in red:</p>
-<p>Writing</p>
-<p>eda.plot_points_and_3pa_over_time()</p>
+<div id="32dc5d83" class="cell" data-execution_count="5">
+<div class="cell-output cell-output-display" data-execution_count="51">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Avg_PointsPG</th>
+<th data-quarto-table-cell-role="th">Avg_FG3A_PG</th>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">SEASON_YEAR_FULL</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2010-11</th>
+<td>99.500000</td>
+<td>15.597818</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2011-12</th>
+<td>96.333333</td>
+<td>18.381313</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2012-13</th>
+<td>98.133333</td>
+<td>17.583801</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2013-14</th>
+<td>101.033333</td>
+<td>20.078819</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2014-15</th>
+<td>100.000000</td>
+<td>21.192953</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2015-16</th>
+<td>102.711864</td>
+<td>21.929229</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2016-17</th>
+<td>105.677966</td>
+<td>24.597378</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2017-18</th>
+<td>106.333333</td>
+<td>26.601021</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2018-19</th>
+<td>111.200000</td>
+<td>28.716588</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2019-20</th>
+<td>111.666667</td>
+<td>33.655473</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2020-21</th>
+<td>112.133333</td>
+<td>34.639815</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2021-22</th>
+<td>110.600000</td>
+<td>34.845723</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2022-23</th>
+<td>114.600000</td>
+<td>33.845466</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">2023-24</th>
+<td>114.233333</td>
+<td>34.849957</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2024-25</th>
+<td>113.900000</td>
+<td>37.126053</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>Then, I plotted both metrics on the same chart — points per game in blue and 3-point attempts per game in red:</p>
+<div id="d88d9e29" class="cell" data-execution_count="6">
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/cell-7-output-1.png" width="1142" height="566" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
 <p>The results are striking: since the 2010–11 season, the average team has increased its scoring by nearly 15 points per game, and the number of 3-pointers attempted has more than doubled.</p>
 <p>This confirms what fans already sense: the NBA has become a three-point-dominated league. The rise of players like Stephen Curry and the league’s emphasis on spacing and efficiency have completely reshaped how teams approach offense.</p>
-<p>Finding 3 — Does Home-Court Advantage Still Matter? Finally, I wanted to test whether the long-held belief in home-court advantage still holds true in modern basketball.</p>
+</section>
+<section id="finding-3-does-home-court-advantage-still-matter" class="level2">
+<h2 class="anchored" data-anchor-id="finding-3-does-home-court-advantage-still-matter">Finding 3 — Does Home-Court Advantage Still Matter?</h2>
+<p>Finally, I wanted to test whether the long-held belief in home-court advantage still holds true in modern basketball.</p>
 <p>Using the cleaned dataset, I separated each team’s home and road records to compare league-wide averages:</p>
-<p>python Copy code avg_home_wins = df[‘Home_Wins’].mean() avg_road_wins = df[‘Road_Wins’].mean() Then I created a simple bar comparison:</p>
-<p>Writing</p>
-<p>eda.plot_home_vs_road(df)</p>
+<p>Then I created a simple bar comparison:</p>
+<div id="e98e91ca" class="cell" data-execution_count="8">
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/cell-9-output-1.png" width="585" height="431" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
 <p>Across all seasons from 2010 to 2025, teams win about six more games per year at home than on the road. Even in an era of private jets, advanced analytics, and neutralized travel schedules, the home crowd and familiarity still provide a measurable edge.</p>
-<p>Conclusion Through this analysis, we can see that NBA data tells a much richer story than the box score alone. Scoring a lot helps, but it’s not the main driver of success — what really matters is scoring efficiently and defending well enough to create a strong point differential.</p>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
+<p>Through this analysis, we can see that NBA data tells a much richer story than the box score alone. Scoring a lot helps, but it’s not the main driver of success — what really matters is scoring efficiently and defending well enough to create a strong point differential.</p>
 <p>Over the last 15 years, the league has experienced a clear offensive revolution. Teams are shooting and making far more three-pointers than ever before, and that shift has pushed scoring averages to historic highs.</p>
 <p>Lastly, even with all the changes in pace, analytics, and travel, home-court advantage still exists. Teams continue to win noticeably more often in their home arenas.</p>
 <p>Altogether, the data reveals a league that’s faster, more three-point heavy, and still deeply human. While numbers and trends shape how the game evolves, the fundamentals — teamwork, defense, and energy — continue to define what it takes to win.</p>
-<p>My Other Repository Here is a link to my other repository that has all of my data collection and EDA:</p>
-<p>Github</p>
+</section>
+<section id="my-repository" class="level2">
+<h2 class="anchored" data-anchor-id="my-repository">My Repository</h2>
+<p>Here is a link to my other repository that has all of my data collection and EDA:</p>
+<p><a href="https://github.com/emclayburn/Stat386-data-acquisition">Github</a></p>
+</section>
 
 </main>
 <!-- /main column -->
