@@ -47,7 +47,7 @@ Using my cleaned dataset, I calculated the correlation between PointsPG and WinP
 eda_script.plot_points_vs_winpct(df)
 ```
 
-To dig deeper, I replaced raw points with point differential per game (average points minus points allowed). This time, the correlation jumped to an almost perfect linear relationship.
+The correlation was only .3636, which is really low. To dig deeper, I replaced raw points with point differential per game (average points minus points allowed). This time, the correlation jumped to an almost perfect linear relationship.
 
 
 ```{python}
