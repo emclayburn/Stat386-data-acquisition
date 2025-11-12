@@ -8,8 +8,6 @@ seasons = [f'{i}-{i+1-2000}' for i in range(START_YEAR, END_YEAR)]
 
 all_3pt_df = []
 
-print(f"Starting acquisition for 3-point stats, seasons {seasons[0]} through {seasons[-1]}...")
-
 for season in seasons:
     try:
         team_stats = LeagueDashTeamStats(season=season)
@@ -21,7 +19,6 @@ for season in seasons:
         df_filtered['SEASON_YEAR_FULL'] = f'{season}'
         
         all_3pt_df.append(df_filtered)
-        print(f"Successfully retrieved 3PT data for {season}.")
         
     except Exception as e:
         print(f"Skipping 3PT data for season {season}. Error: {e}")
@@ -34,6 +31,3 @@ else:
     df_3pt_final = pd.concat(all_3pt_df, ignore_index=True)
     filename = 'nba_3pt_attempts_historical.csv'
     df_3pt_final.to_csv(filename, index=False)
-    print("\n--- 3PT Acquisition Complete ---")
-    print(f"Total Observations: {len(df_3pt_final)}")
-    print(f"Data saved to {filename}. Ready for merging.")
