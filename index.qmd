@@ -25,7 +25,7 @@ To gather my dataset, I used the official NBA Stats API, which provides public a
 
 The Python package nba_api makes this easy to use. After installing it with:
 
-```{nginx}
+```
 pip install nba_api
 ```
 
