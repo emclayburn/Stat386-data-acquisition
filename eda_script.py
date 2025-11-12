@@ -14,7 +14,6 @@ def load_clean_data():
     df = df[CORE_FEATURES].copy()
     df['WinPCT'] = pd.to_numeric(df['WinPCT'], errors='coerce')
 
-    # Parse HOME / ROAD wins
     home = df['HOME'].str.split('-', expand=True)
     df['Home_Wins'] = pd.to_numeric(home[0], errors='coerce')
     df['Home_Losses'] = pd.to_numeric(home[1], errors='coerce')
