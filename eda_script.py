@@ -2,255 +2,99 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-file_path = 'nba_team_standings_historical.csv'
-df = pd.read_csv(file_path)
+def load_clean_data():
+    file_path = 'nba_team_standings_historical.csv'
+    df = pd.read_csv(file_path)
 
-CORE_FEATURES = [
-    'SEASON_YEAR_FULL',
-    'TeamID',
-    'TeamName',
-    'WINS', 
-    'WinPCT',
-    'PointsPG',
-    'DiffPointsPG',
-    'AheadAtHalf',
-    'HOME',
-    'ROAD'
-]
+    CORE_FEATURES = [
+        'SEASON_YEAR_FULL','TeamID','TeamName','WINS','WinPCT',
+        'PointsPG','DiffPointsPG','AheadAtHalf','HOME','ROAD'
+    ]
 
-df_filtered = df[CORE_FEATURES].copy()
+    df = df[CORE_FEATURES].copy()
+    df['WinPCT'] = pd.to_numeric(df['WinPCT'], errors='coerce')
 
-df_filtered['WinPCT'] = pd.to_numeric(df_filtered['WinPCT'], errors='coerce')
+    # Parse HOME / ROAD wins
+    home = df['HOME'].str.split('-', expand=True)
+    df['Home_Wins'] = pd.to_numeric(home[0], errors='coerce')
+    df['Home_Losses'] = pd.to_numeric(home[1], errors='coerce')
 
-home_split = df_filtered['HOME'].str.split('-', expand=True)
-df_filtered['Home_Wins'] = pd.to_numeric(home_split[0], errors='coerce')
-df_filtered['Home_Losses'] = pd.to_numeric(home_split[1], errors='coerce')
+    road = df['ROAD'].str.split('-', expand=True)
+    df['Road_Wins'] = pd.to_numeric(road[0], errors='coerce')
+    df['Road_Losses'] = pd.to_numeric(road[1], errors='coerce')
 
-road_split = df_filtered['ROAD'].str.split('-', expand=True)
-df_filtered['Road_Wins'] = pd.to_numeric(road_split[0], errors='coerce')
-df_filtered['Road_Losses'] = pd.to_numeric(road_split[1], errors='coerce')
+    df = df.drop(columns=['HOME','ROAD'])
+    return df
 
-df_filtered = df_filtered.drop(columns=['HOME', 'ROAD'])
 
-df_filtered.to_csv('nba_clean_for_eda.csv', index=False)
+def plot_points_vs_winpct(df):
+    X_VAR = "PointsPG"
+    Y_VAR = "WinPCT"
 
-#
-#
-#
-# Does scoring more points per game correlate with a higher winning percentage?
+    correlation = df[X_VAR].corr(df[Y_VAR])
 
-new_filename = 'nba_clean_for_eda.csv'
-df_final = pd.read_csv(new_filename)
+    plt.figure(figsize=(10,6))
+    plt.scatter(df[X_VAR], df[Y_VAR], alpha=0.6)
+    z = np.polyfit(df[X_VAR], df[Y_VAR], 1)
+    plt.plot(df[X_VAR], np.poly1d(z)(df[X_VAR]), "r--")
 
-X_VAR = 'PointsPG'
-Y_VAR = 'WinPCT'
+    plt.title(f"Points Per Game vs Win % (r = {correlation:.3f})")
+    plt.xlabel("Points Per Game")
+    plt.ylabel("Win %")
+    plt.grid(True)
+    plt.show()
 
-correlation = df[X_VAR].corr(df[Y_VAR])
 
-plt.figure(figsize=(10, 6))
+def plot_diff_vs_winpct(df):
+    X = "DiffPointsPG"
+    Y = "WinPCT"
 
-plt.scatter(df[X_VAR], df[Y_VAR], alpha=0.6, s=50)
+    correlation = df[X].corr(df[Y])
 
-plt.title(f'NBA Success vs. Offensive Efficiency (2010-11 to 2024-25)\nCorrelation (r): {correlation:.4f}', fontsize=14)
-plt.xlabel('Points Per Game (PointsPG)', fontsize=12)
-plt.ylabel('Winning Percentage (WinPCT)', fontsize=12)
-plt.grid(axis='y', linestyle='--', alpha=0.7)
+    plt.figure(figsize=(10,6))
+    plt.scatter(df[X], df[Y], alpha=0.6)
+    z = np.polyfit(df[X], df[Y], 1)
+    plt.plot(df[X], np.poly1d(z)(df[X]), "r--")
 
-z = np.polyfit(df[X_VAR], df[Y_VAR], 1)
-p = np.poly1d(z)
-plt.plot(df[X_VAR], p(df[X_VAR]), "r--", label=f'Trend Line')
+    plt.title(f"Point Differential vs Win % (r = {correlation:.3f})")
+    plt.xlabel("Point Differential")
+    plt.ylabel("Win %")
+    plt.grid(True)
+    plt.show()
 
-plot_filename = 'eda_points_vs_winpct.png'
-plt.savefig(plot_filename)
-plt.close()
 
-#
-#
-#
-# Increase in pace of game/transitioning to the three point line
-file_path = 'nba_clean_for_eda.csv'
-df = pd.read_csv(file_path)
+def plot_home_vs_road(df):
+    avg_home = df["Home_Wins"].mean()
+    avg_road = df["Road_Wins"].mean()
 
-df_season_avg = df.groupby('SEASON_YEAR_FULL')['PointsPG'].mean().reset_index()
+    plt.bar(["Home Wins","Road Wins"], [avg_home, avg_road], color=["blue","gray"])
+    plt.title(f"Home vs Road Performance (Avg Home Advantage = {avg_home - avg_road:.2f} wins)")
+    plt.ylabel("Average Wins")
+    plt.show()
 
-df_season_avg.columns = ['Season', 'Avg_PointsPG']
 
-plt.figure(figsize=(12, 6))
+def plot_points_and_3pa_over_time():
+    df = pd.read_csv("nba_clean_for_eda.csv")
 
-plt.plot(df_season_avg['Season'], df_season_avg['Avg_PointsPG'], marker='o', linestyle='-', color='tab:blue')
+    df2 = df.groupby("SEASON_YEAR_FULL").agg(
+        Avg_PointsPG=("PointsPG","mean"),
+        Avg_FG3A_PG=("FG3A_PG","mean")
+    ).reset_index()
 
-plt.title('Average NBA Team Points Per Game Over Time (2010-11 to 2024-25)', fontsize=16)
-plt.xlabel('NBA Season', fontsize=12)
-plt.ylabel('Average Points Per Game', fontsize=12)
+    seasons = df2["SEASON_YEAR_FULL"]
 
-plt.xticks(rotation=45, ha='right')
+    fig, ax1 = plt.subplots(figsize=(12,6))
 
-plt.grid(axis='y', linestyle='--', alpha=0.7)
-plt.tight_layout()
+    ax1.plot(seasons, df2["Avg_PointsPG"], marker="o", label="Points per Game", color="blue")
+    ax1.set_ylabel("Points Per Game", color="blue")
+    ax1.tick_params(axis="y", labelcolor="blue")
+    ax1.tick_params(axis="x", rotation=45)
 
-plot_filename = 'eda_points_pg_time_series.png'
-plt.savefig(plot_filename)
-plt.close()
+    ax2 = ax1.twinx()
+    ax2.plot(seasons, df2["Avg_FG3A_PG"], linestyle="--", marker="s", color="red", label="3PA per Game")
+    ax2.set_ylabel("3PA Per Game", color="red")
+    ax2.tick_params(axis="y", labelcolor="red")
 
-#
-#
-#
-# --- Situational Analysis: Home-Court Advantage ---
-file_path = 'nba_clean_for_eda.csv'
-df = pd.read_csv(file_path)
-
-avg_home_wins = df['Home_Wins'].mean()
-avg_road_wins = df['Road_Wins'].mean()
-
-home_advantage_wins = avg_home_wins - avg_road_wins
-
-labels = ['Average Home Wins', 'Average Road Wins']
-wins = [avg_home_wins, avg_road_wins]
-
-plt.figure(figsize=(8, 6))
-plt.bar(labels, wins, color=['darkblue', 'gray'])
-
-for i, win_count in enumerate(wins):
-    plt.text(i, win_count + 0.5, f'{win_count:.2f}', ha='center', fontsize=12)
-
-plt.title('Home vs. Road Wins (NBA 2010-11 to 2024-25)', fontsize=14)
-plt.ylabel('Average Wins Per Team Per Season', fontsize=12)
-plt.xlabel(f'Average Home-Court Advantage: {home_advantage_wins:.2f} Wins', fontsize=12)
-plt.grid(axis='y', linestyle='--', alpha=0.5)
-
-plot_filename = 'eda_home_road_comparison.png'
-plt.savefig(plot_filename)
-plt.close()
-
-#
-#
-#
-# Point differential and its impact on winning percentage
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-
-file_path = 'nba_clean_for_eda.csv'
-df = pd.read_csv(file_path)
-
-X_VAR_DIFF = 'DiffPointsPG'
-Y_VAR = 'WinPCT'
-
-correlation_diff = df[X_VAR_DIFF].corr(df[Y_VAR])
-
-plt.figure(figsize=(10, 6))
-
-plt.scatter(df[X_VAR_DIFF], df[Y_VAR], alpha=0.6, s=50)
-
-plt.title(f'NBA Success vs. Scoring Margin (2010-11 to 2024-25)\nCorrelation (r): {correlation_diff:.4f}', fontsize=14)
-plt.xlabel('Point Differential Per Game', fontsize=12)
-plt.ylabel('Winning Percentage', fontsize=12)
-plt.grid(axis='y', linestyle='--', alpha=0.7)
-
-z = np.polyfit(df[X_VAR_DIFF], df[Y_VAR], 1)
-p = np.poly1d(z)
-plt.plot(df[X_VAR_DIFF], p(df[X_VAR_DIFF]), "r--", label=f'Trend Line')
-
-plot_filename = 'eda_diffpoints_vs_winpct.png'
-plt.savefig(plot_filename)
-plt.close()
-
-#
-#
-#
-# Merging 3-Point Attempts Data with Main Dataset
-
-import pandas as pd
-import numpy as np
-
-main_file_path = 'nba_team_standings_historical.csv'
-df_main = pd.read_csv(main_file_path)
-
-three_pt_file_path = 'nba_3pt_attempts_historical.csv'
-df_3pt = pd.read_csv(three_pt_file_path)
-
-df_3pt['FG3A_PG'] = df_3pt['FG3A'] / df_3pt['GP']
-
-CORE_FEATURES = [
-    'SEASON_YEAR_FULL',
-    'TeamID',
-    'TeamName',
-    'WINS', 
-    'WinPCT',
-    'PointsPG',
-    'DiffPointsPG',
-    'AheadAtHalf',
-    'HOME',
-    'ROAD'
-]
-
-df_filtered = df_main[CORE_FEATURES].copy()
-
-df_filtered['WinPCT'] = pd.to_numeric(df_filtered['WinPCT'], errors='coerce')
-
-home_split = df_filtered['HOME'].str.split('-', expand=True)
-df_filtered['Home_Wins'] = pd.to_numeric(home_split[0], errors='coerce')
-df_filtered['Home_Losses'] = pd.to_numeric(home_split[1], errors='coerce')
-
-road_split = df_filtered['ROAD'].str.split('-', expand=True)
-df_filtered['Road_Wins'] = pd.to_numeric(road_split[0], errors='coerce')
-df_filtered['Road_Losses'] = pd.to_numeric(road_split[1], errors='coerce')
-
-df_filtered = df_filtered.drop(columns=['HOME', 'ROAD'])
-
-df_final = pd.merge(
-    df_filtered, 
-    df_3pt[['TEAM_ID', 'SEASON_YEAR_FULL', 'FG3A_PG']],
-    left_on=['TeamID', 'SEASON_YEAR_FULL'], 
-    right_on=['TEAM_ID', 'SEASON_YEAR_FULL'], 
-    how='left'
-)
-
-df_final = df_final.drop(columns=['TEAM_ID'])
-
-final_filename = 'nba_clean_for_eda.csv'
-df_final.to_csv(final_filename, index=False)
-
-print(df_final[['SEASON_YEAR_FULL', 'TeamName', 'WinPCT', 'PointsPG', 'FG3A_PG']].head())
-
-#
-#
-#
-# modeling the relationship between PointsPG and FG3A_PG over time
-
-import pandas as pd
-import matplotlib.pyplot as plt
-
-df_final = pd.read_csv('nba_clean_for_eda.csv')
-
-df_combined_avg = df_final.groupby('SEASON_YEAR_FULL').agg(
-    Avg_PointsPG=('PointsPG', 'mean'),
-    Avg_FG3A_PG=('FG3A_PG', 'mean')
-).reset_index()
-
-df_combined_avg['Season_End_Year'] = df_combined_avg['SEASON_YEAR_FULL'].str.split('-').str[1]
-x_labels = df_combined_avg['Season_End_Year'].tolist()
-
-fig, ax1 = plt.subplots(figsize=(12, 6))
-
-color1 = 'tab:blue'
-ax1.set_xlabel('NBA Season End Year', fontsize=12)
-ax1.set_ylabel('Avg. Points Per Game', color=color1, fontsize=12)
-ax1.plot(x_labels, df_combined_avg['Avg_PointsPG'], marker='o', linestyle='-', color=color1, label='Avg. PointsPG')
-ax1.tick_params(axis='y', labelcolor=color1)
-ax1.tick_params(axis='x', rotation=45)
-
-ax2 = ax1.twinx()
-color2 = 'tab:red'
-ax2.set_ylabel('Avg. 3-Point Attempts Per Game', color=color2, fontsize=12)
-ax2.plot(x_labels, df_combined_avg['Avg_FG3A_PG'], marker='s', linestyle='--', color=color2, label='Avg. FG3A_PG')
-ax2.tick_params(axis='y', labelcolor=color2)
-ax2.grid(axis='y', linestyle=':', alpha=0.5, color=color2)
-
-plt.title('Points Per Game vs. 3-Point Attempts Over Time', fontsize=16)
-fig.legend(loc="upper left", bbox_to_anchor=(0.1, 0.95))
-
-plt.tight_layout()
-plot_filename = 'eda_points_vs_3pt_time_series_combined.png'
-plt.savefig(plot_filename)
-plt.close()
+    plt.title("Points vs 3-Point Attempts Over Time")
+    fig.tight_layout()
+    plt.show()
