@@ -9,12 +9,6 @@ execute:
 ---
 ```{python}
 import eda_script
-print(eda_script.__file__)
-print(dir(eda_script))
-```
-
-```{python}
-import eda_script
 df = eda_script.load_clean_data()
 ```
 

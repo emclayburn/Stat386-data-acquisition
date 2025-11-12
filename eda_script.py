@@ -3,27 +3,41 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def load_clean_data():
-    file_path = 'nba_team_standings_historical.csv'
-    df = pd.read_csv(file_path)
+    df_main = pd.read_csv("nba_team_standings_historical.csv")
+
+    df_3pt = pd.read_csv("nba_3pt_attempts_historical.csv")
+    df_3pt["FG3A_PG"] = df_3pt["FG3A"] / df_3pt["GP"]
 
     CORE_FEATURES = [
         'SEASON_YEAR_FULL','TeamID','TeamName','WINS','WinPCT',
         'PointsPG','DiffPointsPG','AheadAtHalf','HOME','ROAD'
     ]
 
-    df = df[CORE_FEATURES].copy()
-    df['WinPCT'] = pd.to_numeric(df['WinPCT'], errors='coerce')
+    df = df_main[CORE_FEATURES].copy()
+    df["WinPCT"] = pd.to_numeric(df["WinPCT"], errors="coerce")
 
-    home = df['HOME'].str.split('-', expand=True)
-    df['Home_Wins'] = pd.to_numeric(home[0], errors='coerce')
-    df['Home_Losses'] = pd.to_numeric(home[1], errors='coerce')
+    home = df["HOME"].str.split("-", expand=True)
+    df["Home_Wins"] = pd.to_numeric(home[0], errors="coerce")
+    df["Home_Losses"] = pd.to_numeric(home[1], errors="coerce")
 
-    road = df['ROAD'].str.split('-', expand=True)
-    df['Road_Wins'] = pd.to_numeric(road[0], errors='coerce')
-    df['Road_Losses'] = pd.to_numeric(road[1], errors='coerce')
+    road = df["ROAD"].str.split("-", expand=True)
+    df["Road_Wins"] = pd.to_numeric(road[0], errors="coerce")
+    df["Road_Losses"] = pd.to_numeric(road[1], errors="coerce")
 
-    df = df.drop(columns=['HOME','ROAD'])
-    return df
+    df = df.drop(columns=["HOME", "ROAD"])
+
+    df_final = pd.merge(
+        df,
+        df_3pt[["TEAM_ID","SEASON_YEAR_FULL","FG3A_PG"]],
+        left_on=["TeamID","SEASON_YEAR_FULL"],
+        right_on=["TEAM_ID","SEASON_YEAR_FULL"],
+        how="left"
+    )
+
+    df_final = df_final.drop(columns=["TEAM_ID"])
+
+    return df_final
+
 
 
 def plot_points_vs_winpct(df):
